@@ -55,11 +55,11 @@ D = 50 * 1e-4 # [m^2/yr] from Fernandes and Dietrich 1997 in WRR
 k = D/rhos
 
 L = 50. # length of slope [meters]
-dx = 1. # x step [meters]
+dx = .5 # x step [meters]
 x = np.arange(-L,L+dx,dx) # initialize x array [meters]
 
-dt = 100. # timestep [years]
-tmax = 500. # length of time for model run [years]
+dt = 10. # timestep [years]
+tmax = 5000000. # length of time for model run [years]
 time = np.arange(0,tmax+dt+dt,dt) # initialize time array [years]
 ideal_dt = (dx**2)/(2*D)
 print('ideal timestep is less than: '+str(ideal_dt))
@@ -70,7 +70,7 @@ H_initial = 1. # initial soil thickness - 1 meter
 H[:,0] = H_initial   # start model at inital H [meters]
 #H[0,:] = 0. # soil thickness 0 at stream channels for all of time
 #H[-1,:] = 0. # soil thickness 0 at stream channels for all of time
-Hstar = .01 # scaling parameter for weathering rate. No idea what value to use. Starting with 1. 
+Hstar = .5 # scaling parameter for weathering rate. No idea what value to use. Starting with 1. 
 
 Wo = 1e-3 #1e-5 # initial weathering rate mm/yr [meters/yr]
 W = np.empty(shape=(len(x),len(time)),dtype=float) # initialize array to hold weathering rates
@@ -80,7 +80,7 @@ U = 1e-5 # rate of baselevel fall (or uplift rate) 1 mm/yr [meters/yr] doesn't c
 
 z = np.zeros(shape=(len(x),len(time)),dtype=float) # intialize array for topo elevation [z(x,t)] [meters], add two b/c one cell on each end is for river height boundary condition
 z_initial = z_ss # initial topography [meters] - output from steady state solution
-z[:,0] = z_initial #1.     # topo elevation for first timestep, except at channels, set below
+z[:,0] = 1.     # topo elevation for first timestep, except at channels, set below
 z[0,:] = 0.     # channel height = 0 for all time on left side (boundary condition)
 z[-1,:] = 0.    # channel height = 0 for all time on right side (boundary condition)
 
@@ -119,11 +119,11 @@ plt.show()
 for i in range(len(time)-1):
     W[:,i] = Wo * (np.exp(-H[:,i]/Hstar))               # calculate weathering rate at this time i 
     dzdx[:,i] = np.diff(z[:,i]) / dx                    # calculate slope gradient at this time i
-    Q[:,i] = - k * dzdx[:,i]                            # calculate soil flux for all x at this time i
+    Q[:,i] = - D * dzdx[:,i]                            # calculate soil flux for all x at this time i
     dQdx[:,i] = np.diff(Q[:,i]) / dx                    # calculate gradient in Q (soil flux) for all x at this time i
     dHdt[:,i] = (W[1:-1,i] * (rhor/rhos)) - dQdx[:,i]   # calculate rate of change of soil thickness for all x at this time i
-    H[1:-1,i+1] = dHdt[:,i] * dt                        # update soil thickness at all x at next time i+1
-    zb[1:-1,i+1] = (W[1:-1,i] * dt) + (U * dt)          # update bedrock elevation for all x at next time i+1
+    H[1:-1,i+1] = H[1:-1,i] + dHdt[:,i] * dt                        # update soil thickness at all x at next time i+1
+    zb[1:-1,i+1] = zb[1:-1,i] + (-W[1:-1,i] * dt) + (U * dt)          # update bedrock elevation for all x at next time i+1
     z[1:-1,i+1] = zb[1:-1,i+1] + H[1:-1,i+1]            # update topo elevation for all x at next time i+1
     
     #if i % plots == 0:                          # plot at every plots timestep
@@ -138,14 +138,15 @@ for i in range(len(time)-1):
 #%% plot output
 plt.figure(figsize=(6,4))
 #plt.plot(x,z_ss,'mediumseagreen',linestyle='--')
-#plt.ylim(0,25)
-plt.ylim(0,1)
+#plt.ylim(15,25)
+plt.ylim(0,10)
 plt.grid(color='lightgray',linestyle='--')
 plt.xlabel('distance [m]')
 plt.ylabel('elevation [m]')
 plt.title('finite diff - steady state hillslope')
 
-for i in range(0,int(tmax)):
+for i in 1,10,100,1000, 2000, 3000, 4000, 5000:
+# range(0,int((tmax/dt)/100)):
 #0,1,10000, 20000, 30000, 40000, 50000:
 #1,10000, 20000, 30000, 40000, 50000:
 #1,1e6, 2e6, 3e6, 4e6, 5e6:
