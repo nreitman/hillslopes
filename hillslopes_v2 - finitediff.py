@@ -26,6 +26,7 @@ kappa = .06 # [meters^2/yr] (value from geomechanics notes 10/8)
 dx = 1. # x step [meters]
 x = np.arange(-L,L+dx,dx) # initialize x array
 
+
 # calculate topography (z)
 z = (U / (2 * kappa)) * ((L**2) - (x**2))
 
@@ -45,16 +46,14 @@ z_ss = z # save steady state z profile as initial condition z topo for finite di
 #%% PART 1 - CONVEX UP HILLSLOPE WITH INCISING STREAM
 #################################################################################
 # define variables
-plots = 1
-
 #kappa = .06
-rhos = 1.33 * 1e6 # density soil 1.33 g/cm3 --> [g/m^3]
-rhor = 2.65 * 1e6 # density rock 2.65 g/cm3  --> [g/m^3]
+rhos = 1.33 * 1e3 #1.33 * 1e6 # density soil 1.33 g/cm3 --> [g/m^3]
+rhor = 2.65 * 1e3 # 2.65 * 1e6 # density rock 2.65 g/cm3  --> [g/m^3]
 #k = kappa * rhos
 D = 50 * 1e-4 # [m^2/yr] from Fernandes and Dietrich 1997 in WRR
 k = D/rhos
 
-L = 50. # length of slope [meters]
+L = 150. # length of slope [meters]
 dx = .5 # x step [meters]
 x = np.arange(-L,L+dx,dx) # initialize x array [meters]
 
@@ -136,20 +135,30 @@ for i in range(len(time)-1):
 
 
 #%% plot output
+
+plots = 10000   
+       
 plt.figure(figsize=(6,4))
 #plt.plot(x,z_ss,'mediumseagreen',linestyle='--')
 #plt.ylim(15,25)
-plt.ylim(0,10)
+#plt.ylim(0,300)
 plt.grid(color='lightgray',linestyle='--')
 plt.xlabel('distance [m]')
 plt.ylabel('elevation [m]')
 plt.title('finite diff - steady state hillslope')
 
-for i in 1,10,100,1000, 2000, 3000, 4000, 5000:
+
+for i in range(len(time)-1):
+    if i % plots == 0:
+#1,10,100,1000, 2000, 3000, 4000, 5000:
 # range(0,int((tmax/dt)/100)):
 #0,1,10000, 20000, 30000, 40000, 50000:
 #1,10000, 20000, 30000, 40000, 50000:
 #1,1e6, 2e6, 3e6, 4e6, 5e6:
 #range(np.linspace(0,int(tmax/dt),num=6,dtype=int)):
-    plt.plot(x,z[:,i],label=str(i*dt)+' years') 
-    plt.legend()
+        plt.plot(x,z[:,i],label=str(i*dt)+' years') 
+        #plt.text(-49, 9.5, 'time (years): '+ str((i*dt))) # add label total time
+        #plt.legend()
+plt.text(-149,33, 'time (years): '+ str(int((i*dt)))) # add label total time
+plt.text(-149,31,'Wo: '+str(Wo)+' mm/yr')
+plt.text(-149,29,'U: '+str(U)+' mm/yr')
