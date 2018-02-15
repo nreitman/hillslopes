@@ -30,7 +30,7 @@ dx = .5 # x step [meters]
 x = np.arange(0,L+dx,dx) # initialize x array [meters]
 
 dt = 1. # timestep [years]
-tmax = 11000. # length of time for model run [years]
+tmax = 20000. # length of time for model run [years]
 time = np.arange(0,tmax+dt+dt,dt) # initialize time array [years]
 ideal_dt = (dx**2)/(2*D)
 print('ideal timestep is less than: '+str(ideal_dt))
@@ -57,7 +57,7 @@ alpha = np.int(np.degrees(np.arctan(ztop/L)))
 slip_vertical = 1 # all slip is vertical
 slip_horizontal = 0 # no slip is horizontal
 
-Useismic = 3. # rate of fault uplift 1 m [m/yr] during seismic event
+Useismic = 2. # rate of fault uplift 1 m [m/yr] during seismic event
 Uinterseis = 0. # rate of fault uplift during interseismic periods
 U = np.zeros(len(time))
 #U[10] = Useismic
@@ -131,21 +131,22 @@ for i in range(0,len(time)-1):
 
 #%% plot output
 
-plots = 200
+plots = 100
+ymax = 160
        
-plt.figure(figsize=(6,4))
-#plt.plot(x,z_ss,'mediumseagreen',linestyle='--')
-plt.ylim(85,105)
-plt.xlim(140,160)
-#plt.xlim(140,160)
-plt.grid(color='lightgray',linestyle='--')
-plt.axvline(150,0,line,color='k',linewidth=0.85) # plot line at X = 150
-plt.xlabel('distance [m]')
-plt.ylabel('elevation [m]')
-plt.title('finite diff - tectonically uplifting hillslope')
+#plt.figure(figsize=(6,4))
+##plt.plot(x,z_ss,'mediumseagreen',linestyle='--')
+#plt.ylim(0,185)
+##plt.xlim(140,160)
+##plt.xlim(140,160)
+##plt.grid(color='lightgray',linestyle='--')
+#plt.axvline(150,0,line,color='k',linestyle='--',linewidth=0.85) # plot line at X = 150
+#plt.xlabel('distance [m]')
+#plt.ylabel('elevation [m]')
+#plt.title('finite diff - tectonically uplifting hillslope')
 
 
-for i in range(0,len(time)-1):#0,1,9,100,200,300:
+for i in range(1,len(time)-1):
     if i % plots == 0:
 #range(0,len(time)-1):
 #1,10,100,1000, 2000, 3000, 4000, 5000:
@@ -154,9 +155,80 @@ for i in range(0,len(time)-1):#0,1,9,100,200,300:
 #1,10000, 20000, 30000, 40000, 50000:
 #1,1e6, 2e6, 3e6, 4e6, 5e6:
 #range(np.linspace(0,int(tmax/dt),num=6,dtype=int)):
-        plt.plot(x,z[:,i],label=str(i*dt)+' years') 
+        
+        plt.figure(figsize=(6,4))
+        plt.ylim(40,ymax)
+        plt.xlim(100,200)
+        plt.axvline(150,0,0.39,color='k',linestyle='--',linewidth=0.85) # plot line at X = 150
+        plt.xlabel('distance [m]')
+        plt.ylabel('elevation [m]')
+        plt.title('finite diff - tectonically uplifting hillslope')
+        plt.fill_between(x,0,z_initial,facecolor='saddlebrown')
+        plt.fill_between(x,z_initial,z[:,i],facecolor='chocolate')
+        #plt.fill_between(x,z[:,i-1],z[:,i],facecolor='black')
+        plt.plot(x,z[:,i],'g',linewidth=2.0,label=str(i*dt)+' years')
+        plt.text(155,(ymax-30), str(int(i*dt))+' years')
+        plt.savefig('tmp'+str(i/plots)+'.png',bbox_inches="tight",dpi=150)
+        plt.close()
+        #plt.plot(x,z[:,i],label=str(i*dt)+' years') 
         #plt.text(-49, 9.5, 'time (years): '+ str((i*dt))) # add label total time
         #plt.legend()
-plt.text(155,115, 'time (years): '+ str(int((i*dt)))) # add label total time
+        
+#plt.text(155,155, str(int(i*dt))+' years') # add label total time
+#plt.savefig('tmp'+str((i/plots)+1)+'.png',bbox_inches="tight",dpi=150)
 #plt.text(150,31,'Wo: '+str(Wo)+' mm/yr')
 #plt.text(0,8,'Uplift: '+str(Useismic)+' mm/yr')
+        
+#%% make a movie with ffmpeg!
+#fps = 35
+os.system("rm movie.mp4") # remove a previous movie.mp4 file so don't get overwrite problems
+os.system("ffmpeg -r 10 -pattern_type sequence -i tmp'%d'.png -vcodec mpeg4 movie.mp4") 
+os.system("rm tmp*.png")
+
+#%% colluvial wedges fig  
+plt.figure(figsize=(6,4))  
+plt.ylim(40,160)
+plt.xlim(100,200)
+plt.axvline(150,0,0.39,color='k',linestyle='--',linewidth=0.85) # plot line at X = 150
+plt.xlabel('distance [m]')
+plt.ylabel('elevation [m]')
+plt.title('20k yrs with 2m uplift every 2k yrs')
+plt.fill_between(x,0,z_initial,facecolor='saddlebrown',label='initial planar hill')
+plt.fill_between(x,z[:,18001],z[:,20001],facecolor='maroon')
+plt.fill_between(x,z[:,16001],z[:,18001],facecolor='goldenrod')
+plt.fill_between(x,z[:,14001],z[:,16001],facecolor='burlywood')
+plt.fill_between(x,z[:,1201],z[:,14001],facecolor='sandybrown')
+plt.fill_between(x,z[:,10001],z[:,12001],facecolor='tan')
+plt.fill_between(x,z[:,8001],z[:,10001],facecolor='darkorange')
+plt.fill_between(x,z[:,6001],z[:,8001],facecolor='darkgoldenrod')
+plt.fill_between(x,z[:,4001],z[:,6001],facecolor='chocolate')
+plt.fill_between(x,z[:,2001],z[:,4001],facecolor='sienna')
+plt.fill_between(x,z_initial,z[:,2001],facecolor='saddlebrown')
+
+plt.plot(x,z[:,-1],'g',linewidth=1.0,label='final topo')
+plt.text(155,(ymax-30), str(int(i*dt))+' years')
+plt.savefig('20kyrs_colluvial_wedges.png',bbox_inches="tight",dpi=300)
+
+#%% colluvial wedges fig  
+plt.figure(figsize=(6,4))  
+plt.ylim(80,125)
+plt.xlim(135,165)
+plt.axvline(150,0,0.16,color='k',linestyle='--',linewidth=0.85) # plot line at X = 150
+plt.xlabel('distance [m]')
+plt.ylabel('elevation [m]')
+plt.title('20k yrs with 2m uplift every 2k yrs')
+plt.fill_between(x,0,z_initial,facecolor='saddlebrown',label='initial planar hill')
+plt.fill_between(x,z[:,18001],z[:,20001],facecolor='maroon')
+plt.fill_between(x,z[:,16001],z[:,18001],facecolor='goldenrod')
+plt.fill_between(x,z[:,14001],z[:,16001],facecolor='burlywood')
+plt.fill_between(x,z[:,1201],z[:,14001],facecolor='sandybrown')
+plt.fill_between(x,z[:,10001],z[:,12001],facecolor='tan')
+plt.fill_between(x,z[:,8001],z[:,10001],facecolor='darkorange')
+plt.fill_between(x,z[:,6001],z[:,8001],facecolor='darkgoldenrod')
+plt.fill_between(x,z[:,4001],z[:,6001],facecolor='chocolate')
+plt.fill_between(x,z[:,2001],z[:,4001],facecolor='sienna')
+plt.fill_between(x,z_initial,z[:,2001],facecolor='saddlebrown')
+
+plt.plot(x,z[:,-1],'g',linewidth=1.0,label='final topo')
+#plt.text(155,(ymax-30), str(int(i*dt))+' years')
+plt.savefig('20kyrs_colluvial_wedges_zoom.png',bbox_inches="tight",dpi=300)
